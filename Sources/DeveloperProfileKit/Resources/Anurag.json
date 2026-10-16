@@ -1,0 +1,28 @@
+{
+  "name": "Anurag Chourasia",
+  "role": "iOS Engineer",
+  "summary": "Dynamic iOS Engineer with around 4 years of experience delivering high-performance, production-grade mobile applications for global brands such as Lloyds, Halifax, BOS, MBNA, and ITC Hotels.\n\nSpecialized in Swift, Objective-C, SwiftUI, and modular architectures (MVVM, MVVM-C, MVC).\n\nProven expertise in CI/CD pipelines, automated testing (unit, UI, snapshot), and Agile/Scrum collaboration.\n\nPassionate about building scalable, user-centric iOS applications.",
+  "portrait": "Anurag",
+  "links": [
+    {
+      "title": "GitHub",
+      "icon": "GitHub",
+      "url": "https://github.com/Anurag-Chourasia"
+    },
+    {
+      "title": "LinkedIn",
+      "icon": "LinkedIn",
+      "url": "https://www.linkedin.com/in/anurag-chourasia-b66710178/"
+    },
+    {
+      "title": "Email",
+      "icon": "Gmail",
+      "url": "mailto:anuragchourasiaios@gmail.com"
+    },
+    {
+      "title": "CV",
+      "icon": "CV",
+      "url": "https://drive.google.com/file/d/16lYgU9C3WyBlL1Jzf__tKiaXxnsNZ_jd/view"
+    }
+  ]
+}

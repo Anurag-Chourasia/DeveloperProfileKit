@@ -1,0 +1,24 @@
+{
+  "originHash" : "e15411f43bf0415e187bb3ed51e705bf0fc7c633028414408d34608eccf6774e",
+  "pins" : [
+    {
+      "identity" : "designtokenskit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Anurag-Chourasia/DesignTokensKit.git",
+      "state" : {
+        "revision" : "35b72f251393f61d95ad580da8f9cebb04e93cbe",
+        "version" : "1.2.0"
+      }
+    },
+    {
+      "identity" : "uicomponentskit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Anurag-Chourasia/UIComponentsKit.git",
+      "state" : {
+        "revision" : "7b3296ce1cec548bf8cad36b7526ba41c07cc30e",
+        "version" : "1.2.0"
+      }
+    }
+  ],
+  "version" : 3
+}
