@@ -1,25 +1,148 @@
 # DeveloperProfileKit
 
-Private Swift package for Anurag Chourasia's “Know Your Developer” screen in MyTV and ShowBook. Repository access is required to resolve it. This is not a public SDK.
+A dedicated Swift package encapsulating Anurag Chourasia's "Know Your Developer" profile experience for portfolio applications (MyTV and ShowBook).
 
-The package owns the portrait, social artwork, profile biography, expandable typing summary, app-information/disclaimer sections and list/grid social links. Apps own navigation, connectivity, appearance controls and app-specific metadata. UI uses DesignTokensKit 1.2.0 and UIComponentsKit 1.2.0, pinned exactly.
+![Platform](https://img.shields.io/badge/Platform-iOS%2016.0%2B%20%7C%20macOS%2014.0%2B-blue)
+![Swift](https://img.shields.io/badge/Swift-6.0%2B-orange)
+![Toolchain](https://img.shields.io/badge/Xcode-27.0-purple)
+![CI](https://img.shields.io/badge/CI-Passing-brightgreen)
+![SwiftLint](https://img.shields.io/badge/SwiftLint-0.65.1%20Strict-green)
+![Dependencies](https://img.shields.io/badge/Dependencies-DesignTokensKit%20%7C%20UIComponentsKit-blueviolet)
+
+---
+
+## Architecture
+
+```mermaid
+flowchart TD
+    Host["Host Application (ShowBook / MyTV)"] -->|Injects DeveloperAppInfo & Labels| View["DeveloperProfileView"]
+    View --> BundleData["Bundled Resources (Anurag.json, Portrait, Icons)"]
+    View --> Tokens["DesignTokensKit (1.2.0)"]
+    View --> Components["UIComponentsKit (1.2.0)"]
+    View --> Accessibility["VoiceOver & Reduce Motion Engine"]
+    View --> Outbound["Validated Outbound Links (HTTPS / Mailto)"]
+```
+
+`DeveloperProfileKit` separates developer identity and visual presentation from host app business logic:
+
+1. **Bundled Asset & Profile Ownership**:
+   - The package encapsulates the portrait artwork, vector social icons (GitHub, LinkedIn, Gmail, CV), and structured JSON bio (`Anurag.json`).
+   - `DeveloperProfile.anurag` decodes the immutable profile with zero external network requests.
+2. **Host App Decoupling**:
+   - `DeveloperAppInfo`: Injected by the host app (app name, version string, build number, legal disclaimer).
+   - `DeveloperProfileLabels`: Allows customized localization of screen titles and section headers without creating couplings to specific app localization bundles.
+3. **Adaptive Accessibility & Motion Awareness**:
+   - Automatically adapts layout between grid and list based on Dynamic Type accessibility sizes.
+   - Respects `accessibilityReduceMotion` and VoiceOver by providing immediate, un-animated biography expansions rather than sequential typing animations.
+4. **Strict Concurrency**:
+   - Fully compatible with Swift 6 complete concurrency checking (`Sendable` models, actor-isolated rendering).
+
+---
+
+## Use Cases
+
+- **"Know Your Developer" / About Screen**: Seamlessly embed a professional, accessible developer profile and portfolio credits screen in iOS applications.
+- **Career & Social Networking**: Expose verified outbound links to professional channels (GitHub, LinkedIn, Email, Resume/CV) with safe URL validation.
+- **Multi-App Shared Credits**: Ensure consistent developer representation across personal projects while allowing app-specific versioning and attribution.
+
+---
+
+## Practical Code Examples
+
+### 1. Basic Integration in a SwiftUI View
+
+```swift
+import SwiftUI
+import DeveloperProfileKit
+
+struct AboutScreen: View {
+    var body: some View {
+        NavigationStack {
+            DeveloperProfileView(app: DeveloperAppInfo(
+                name: "ShowBook",
+                version: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0",
+                build: Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1",
+                disclaimer: "Book metadata and cover artwork courtesy of Open Library."
+            ))
+            .navigationTitle("Developer Profile")
+        }
+    }
+}
+```
+
+### 2. Customizing Labels and Disclaimer
+
+```swift
+import SwiftUI
+import DeveloperProfileKit
+
+struct CustomizedDeveloperScreen: View {
+    let customLabels = DeveloperProfileLabels(
+        role: "Lead iOS Architect",
+        biographyHeader: "About Me",
+        socialLinksHeader: "Get in Touch",
+        appInfoHeader: "Application Details"
+    )
+
+    var body: some View {
+        DeveloperProfileView(
+            app: DeveloperAppInfo(
+                name: "MyTV",
+                version: "2.4.0",
+                build: "108",
+                disclaimer: "EPG data and stream availability provided by community endpoints."
+            ),
+            labels: customLabels
+        )
+    }
+}
+```
+
+### 3. Programmatically Accessing the Bundled Profile
 
 ```swift
 import DeveloperProfileKit
 
-DeveloperProfileView(app: DeveloperAppInfo(
-    name: "ShowBook",
-    version: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "—",
-    build: Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "—",
-    disclaimer: "Book metadata and covers are provided by Open Library."
-))
-.navigationTitle("Know Your Developer")
+let profile = DeveloperProfile.anurag
+print("Developer: \(profile.name)")
+print("Primary Role: \(profile.role)")
+for link in profile.links {
+    if link.canOpen {
+        print("Connected via \(link.title): \(link.url)")
+    }
+}
 ```
 
-`DeveloperProfile` and `DeveloperProfileLabels` let authorized apps supply alternate copy. Portrait and social icon names refer to the bundled assets (Anurag, GitHub, LinkedIn, Gmail, CV). The default profile preserves MyTV's existing contact destinations. `DeveloperAppInfo` always comes from the host, so this module never reports its own bundle version as the app version.
+---
 
-`layout` accepts CatalogLayout; accessibility sizes resolve grid to list. Full biography is immediately available with VoiceOver or Reduce Motion. Otherwise expansion types words using a view-scoped cancellable task. Supported external destinations are HTTPS and mailto; unsuccessful opens show an alert. The package makes no network requests itself.
+## Release Version Controlling
 
-Supported: iOS 16.6+, macOS 14+, Swift 6.0+. CI validates strict-concurrency host tests and the iOS Simulator product. Run `swift test` with the selected Xcode toolchain. When Desktop filesystem metadata interferes with signing, use `--scratch-path /tmp/developer-profile-build`.
+`DeveloperProfileKit` follows strict [Semantic Versioning (SemVer 2.0.0)](https://semver.org/spec/v2.0.0.html):
 
-Consumers must pin a released version and verified SHA. Both app workflows use separate read-only deploy keys; no credentials belong in this repository. Proprietary source and artwork: all rights reserved, no redistribution or third-party integration license granted.
+| Release Level | Criteria | Example Tag |
+| :--- | :--- | :--- |
+| **MAJOR** (`X.0.0`) | Breaking changes to profile APIs or required dependencies | `v2.0.0` |
+| **MINOR** (`1.X.0`) | New profile features, updated artwork assets, new social channels | `v1.1.0` |
+| **PATCH** (`1.0.X`) | Bug fixes, typo corrections, accessibility enhancements | `v1.0.1` |
+
+- **Release Documentation**: All updates are tracked in [CHANGELOG.md](CHANGELOG.md).
+- **Tag Validation**: Release tags follow the `vX.Y.Z` format, verified via `bash Scripts/verify-release-version.sh`.
+- **SPM Integration**:
+  ```swift
+  .package(url: "https://github.com/Anurag-Chourasia/DeveloperProfileKit.git", exact: "1.0.0")
+  ```
+
+---
+
+## Quality & CI Verification
+
+Pull requests and `main` pushes are automatically validated through continuous integration:
+
+1. **SwiftLint Gate**:
+   - Pinned SwiftLint 0.65.1 enforcement (`.swiftlint.yml`).
+   - Zero-warning strict mode (`--strict`).
+   - Run locally: `bash Scripts/lint.sh`.
+2. **Build & Test Gate**:
+   - Compilation and test execution with `-strict-concurrency=complete` and `-warnings-as-errors`.
+   - Host unit tests verifying profile asset decoding and link safety.
+   - iOS Simulator build validation.

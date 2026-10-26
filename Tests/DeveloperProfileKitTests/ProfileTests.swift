@@ -23,9 +23,10 @@ final class ProfileTests: XCTestCase {
     }
     #endif
 
-    func testUnsafeLinkSchemesAreRejected() {
+    func testUnsafeLinkSchemesAreRejected() throws {
         for value in ["file:///tmp/private", "javascript:alert(1)", "http://example.com", "relative"] {
-            XCTAssertFalse(DeveloperLink(title: "Link", icon: "", url: URL(string: value)!).canOpen)
+            let url = try XCTUnwrap(URL(string: value))
+            XCTAssertFalse(DeveloperLink(title: "Link", icon: "", url: url).canOpen)
         }
     }
     func testPreviewHandlesWhitespaceAndShortText() {

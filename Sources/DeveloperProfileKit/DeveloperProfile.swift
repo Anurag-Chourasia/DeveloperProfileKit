@@ -31,8 +31,12 @@ public struct DeveloperProfile: Decodable, Sendable {
     static let resourceBundle = Bundle.module
     public static let anurag: DeveloperProfile = {
         // A required, immutable package resource, validated by the package tests.
-        let url = Bundle.module.url(forResource: "Anurag", withExtension: "json")!
-        return try! JSONDecoder().decode(DeveloperProfile.self, from: Data(contentsOf: url))
+        guard let url = Bundle.module.url(forResource: "Anurag", withExtension: "json"),
+              let data = try? Data(contentsOf: url),
+              let profile = try? JSONDecoder().decode(DeveloperProfile.self, from: data) else {
+            fatalError("Failed to decode bundled Anurag.json profile resource")
+        }
+        return profile
     }()
 }
 
