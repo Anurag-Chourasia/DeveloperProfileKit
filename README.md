@@ -1,145 +1,199 @@
 # DeveloperProfileKit
 
-A dedicated Swift package encapsulating Anurag Chourasia's "Know Your Developer" profile experience for portfolio applications (MyTV and ShowBook).
+A dedicated, accessible Swift package encapsulating Anurag Chourasia's "Know Your Developer" profile, credits, and portfolio experience for multi-app architectures.
 
 ![Platform](https://img.shields.io/badge/Platform-iOS%2016.0%2B%20%7C%20macOS%2014.0%2B-blue)
 ![Swift](https://img.shields.io/badge/Swift-6.0%2B-orange)
-![Toolchain](https://img.shields.io/badge/Xcode-27.0-purple)
+![Toolchain](https://img.shields.io/badge/Xcode-27.1-purple)
 ![CI](https://img.shields.io/badge/CI-Passing-brightgreen)
 ![SwiftLint](https://img.shields.io/badge/SwiftLint-0.65.1%20Strict-green)
-![Dependencies](https://img.shields.io/badge/Dependencies-DesignTokensKit%20%7C%20UIComponentsKit-blueviolet)
+![Version](https://img.shields.io/badge/Release-v1.2.0-blueviolet)
+![Dependencies](https://img.shields.io/badge/Dependencies-DesignTokensKit%20%7C%20UIComponentsKit%20%7C%20LocalizationKit-blueviolet)
+![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
 ---
 
-## Architecture
+## 1. Executive Summary & Purpose
+
+`DeveloperProfileKit` provides a reusable, accessible developer bio and credits screen across **ShowBook**, **myTV**, and **Motivation Daily**. It standardizes author attribution, verified outbound professional links, and app metadata display while remaining cleanly decoupled from host domain models.
+
+### Key Engineering Objectives:
+- **Zero-Network Profile Bundling**: Encapsulates portrait artwork, social icons, and structured developer biography (`Anurag.json`) inside the package bundle, eliminating network dependencies.
+- **Injected Host Metadata (`DeveloperAppInfo`)**: The host application injects app-specific branding, marketing version, build number, and legal disclaimers.
+- **Injected Localization (`DeveloperProfileLabels`) (IOS-59)**: Screen titles, section headers, and outbound link descriptions are localized via caller injection, preventing rigid bundle coupling.
+- **VoiceOver & Motion Accessibility**: Respects `accessibilityReduceMotion` by bypassing typing animations, and outlines explicit VoiceOver navigation ordering.
+
+---
+
+## 2. Architecture & Design Principles
 
 ```mermaid
 flowchart TD
-    Host["Host Application (ShowBook / MyTV)"] -->|Injects DeveloperAppInfo & Labels| View["DeveloperProfileView"]
+    Host["Host Application (ShowBook / myTV / Motivation Daily)"] -->|Injects AppInfo & Localized Labels| View["DeveloperProfileView"]
     View --> BundleData["Bundled Resources (Anurag.json, Portrait, Icons)"]
-    View --> Tokens["DesignTokensKit (1.2.0)"]
-    View --> Components["UIComponentsKit (1.2.0)"]
-    View --> Accessibility["VoiceOver & Reduce Motion Engine"]
-    View --> Outbound["Validated Outbound Links (HTTPS / Mailto)"]
+    View --> Tokens["DesignTokensKit (Spacing, Typography, Metrics)"]
+    View --> Components["UIComponentsKit (SurfaceCard, Buttons)"]
+    View --> Localisation["LocalisationKit (Injected Labels)"]
+    View --> Accessibility["VoiceOver & Motion Engine"]
+    View --> Outbound["Validated Outbound Links (GitHub, LinkedIn, Email, Resume)"]
 ```
 
-`DeveloperProfileKit` separates developer identity and visual presentation from host app business logic:
-
-1. **Bundled Asset & Profile Ownership**:
-   - The package encapsulates the portrait artwork, vector social icons (GitHub, LinkedIn, Gmail, CV), and structured JSON bio (`Anurag.json`).
-   - `DeveloperProfile.anurag` decodes the immutable profile with zero external network requests.
-2. **Host App Decoupling**:
-   - `DeveloperAppInfo`: Injected by the host app (app name, version string, build number, legal disclaimer).
-   - `DeveloperProfileLabels`: Allows customized localization of screen titles and section headers without creating couplings to specific app localization bundles.
-3. **Adaptive Accessibility & Motion Awareness**:
-   - Automatically adapts layout between grid and list based on Dynamic Type accessibility sizes.
-   - Respects `accessibilityReduceMotion` and VoiceOver by providing immediate, un-animated biography expansions rather than sequential typing animations.
-4. **Strict Concurrency**:
-   - Fully compatible with Swift 6 complete concurrency checking (`Sendable` models, actor-isolated rendering).
+### Architectural Tenets:
+1. **Host App Decoupling**: Contains no business logic or API endpoints of the host applications; strictly renders developer attribution.
+2. **Swift 6 Concurrency Compliance**: All models (`DeveloperProfile`, `DeveloperAppInfo`, `DeveloperProfileLabels`) conform to `Sendable`.
+3. **Safe Outbound Dispatching**: Validates and sanitizes outbound HTTPS/mailto URLs before handing off to iOS `openURL`.
 
 ---
 
-## Use Cases
+## 3. Dependency Graph & Consumer Matrix
 
-- **"Know Your Developer" / About Screen**: Seamlessly embed a professional, accessible developer profile and portfolio credits screen in iOS applications.
-- **Career & Social Networking**: Expose verified outbound links to professional channels (GitHub, LinkedIn, Email, Resume/CV) with safe URL validation.
-- **Multi-App Shared Credits**: Ensure consistent developer representation across personal projects while allowing app-specific versioning and attribution.
+| Direction | Package / Project | Responsibility |
+|---|---|---|
+| **Upstream Dependencies** | **DesignTokensKit** (`v1.22.3`) | Spacing, corner radius, touch targets, and typography tokens. |
+| | **UIComponentsKit** (`v1.9.0`) | Surface cards, message banners, and accessible button styling. |
+| | **LocalisationKit** (`v0.8.1`) | Injected localization string resolution. |
+| **Downstream Consumers** | **ShowBook** | "Know Your Developer" screen in the slide-out navigation menu. |
+| | **myTV** | About & Credits screen in the sidebar navigation sheet. |
+| | **Motivation Daily** | Developer profile and share studio attribution view. |
 
 ---
 
-## Practical Code Examples
+## 4. API Contracts & Practical Code Examples
 
-### 1. Basic Integration in a SwiftUI View
-
+### 1. Injected Host Profile Integration
 ```swift
 import SwiftUI
 import DeveloperProfileKit
+import LocalizationKit
 
 struct AboutScreen: View {
+    @Environment(\.dismiss) var dismiss
+
     var body: some View {
         NavigationStack {
-            DeveloperProfileView(app: DeveloperAppInfo(
-                name: "ShowBook",
-                version: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0",
-                build: Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1",
-                disclaimer: "Book metadata and cover artwork courtesy of Open Library."
-            ))
-            .navigationTitle("Developer Profile")
+            DeveloperProfileView(
+                appInfo: DeveloperAppInfo(
+                    appName: "ShowBook",
+                    version: "1.0.0",
+                    buildNumber: "42",
+                    disclaimer: "ShowBook utilizes the public Open Library API."
+                ),
+                labels: DeveloperProfileLabels(
+                    title: L10n.About.title.localized,
+                    biographyHeader: L10n.About.bioHeader.localized,
+                    experienceHeader: L10n.About.experienceHeader.localized,
+                    connectHeader: L10n.About.connectHeader.localized
+                )
+            )
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
         }
     }
 }
 ```
 
-### 2. Customizing Labels and Disclaimer
+---
 
-```swift
-import SwiftUI
-import DeveloperProfileKit
+## 5. Verification & Testing
 
-struct CustomizedDeveloperScreen: View {
-    let customLabels = DeveloperProfileLabels(resolving: { key in
-        NSLocalizedString(key, comment: "")
-    })
+```sh
+# Run DeveloperProfileKit unit tests and JSON decoding validation
+swift test
 
-    var body: some View {
-        DeveloperProfileView(
-            app: DeveloperAppInfo(
-                name: "MyTV",
-                version: "2.4.0",
-                build: "108",
-                disclaimer: "EPG data and stream availability provided by community endpoints."
-            ),
-            labels: customLabels
-        )
-    }
-}
-```
-
-### 3. Programmatically Accessing the Bundled Profile
-
-```swift
-import DeveloperProfileKit
-
-let profile = DeveloperProfile.anurag
-print("Developer: \(profile.name)")
-print("Primary Role: \(profile.role)")
-for link in profile.links {
-    if link.canOpen {
-        print("Connected via \(link.title): \(link.url)")
-    }
-}
+# Validate architectural boundaries and symbol tokenization
+python3 /path/to/UIComponentsKit/Scripts/check_architecture.py --workspace-root /path/to/Projects
 ```
 
 ---
 
-## Release Version Controlling
+## 6. End-to-End Ecosystem Connectivity
 
-`DeveloperProfileKit` follows strict [Semantic Versioning (SemVer 2.0.0)](https://semver.org/spec/v2.0.0.html):
+```mermaid
+graph TD
+    subgraph CoreServices ["Shared Core Services (SPMs)"]
+        FoundationKit["FoundationKit<br/>(System Clock, Unified Logging, Thread Safety)"]
+        LocalisationKit["LocalisationKit<br/>(Typed Strings, Pluralization, String Catalogs)"]
+        DesignTokensKit["DesignTokensKit<br/>(BrandPalettes, ColorTheme, Typography, Metrics, SF Symbols)"]
+        CommonNetworkingKit["CommonNetworkingKit<br/>(HTTPClient, URLSession, RequestBuilder, Interceptors)"]
+        AppStubData["AppStubData<br/>(Synthetic Fixtures, Offline Catalogs, Test Scenarios)"]
+    end
 
-| Release Level | Criteria | Example Tag |
-| :--- | :--- | :--- |
-| **MAJOR** (`X.0.0`) | Breaking changes to profile APIs or required dependencies | `v2.0.0` |
-| **MINOR** (`1.X.0`) | New profile features, updated artwork assets, new social channels | `v1.1.0` |
-| **PATCH** (`1.0.X`) | Bug fixes, typo corrections, accessibility enhancements | `v1.0.1` |
+    subgraph UIServices ["Shared Presentation & Auth (SPMs)"]
+        UIComponentsKit["UIComponentsKit<br/>(CatalogTile, SurfaceCard, StateMessage, Recipes)"]
+        AuthKit["AuthKit & AuthKitUI<br/>(SessionManager, AppAuthGate, AccountToolbarItem)"]
+        DeveloperProfileKit["DeveloperProfileKit<br/>(DeveloperProfileView, Runtime Overlays)"]
+        SnapshotTestingKit["SnapshotTestingKit<br/>(Subpixel Comparison, Golden Baseline Engine)"]
+    end
 
-- **Release Documentation**: All updates are tracked in [CHANGELOG.md](CHANGELOG.md).
-- **Tag Validation**: Release tags follow the `vX.Y.Z` format, verified via `bash Scripts/verify-release-version.sh`.
-- **SPM Integration**:
-  ```swift
-  .package(url: "https://github.com/Anurag-Chourasia/DeveloperProfileKit.git", exact: "1.0.0")
-  ```
+    subgraph HostApps ["Host Applications"]
+        ShowBook["ShowBook<br/>(Book Discovery, Core Data Persistence, Open Library)"]
+        MyTV["myTV<br/>(IPTV Browser, AVPlayer Lifecycle, Directory Cache)"]
+        MotivationDaily["Motivation Daily<br/>(Card Feed, Quote Persistence, Image Export Studio)"]
+    end
+
+    subgraph QualityGates ["CI/CD Automation & Tooling"]
+        ArchitectureGuard["check_architecture.py<br/>(Boundary Enforcement, Zero Token Leakage)"]
+        SnapshotVerifier["verify-snapshot-baselines.py<br/>(Visual Regression Gate)"]
+        GHActions["GitHub Actions CI<br/>(Fast Lane, Smoke Lane, Release Build Verification)"]
+    end
+
+    %% Dependencies between Shared SPMs
+    DesignTokensKit --> UIComponentsKit
+    LocalisationKit --> UIComponentsKit
+    DesignTokensKit --> AuthKit
+    UIComponentsKit --> AuthKit
+    FoundationKit --> CommonNetworkingKit
+    DesignTokensKit --> DeveloperProfileKit
+    UIComponentsKit --> DeveloperProfileKit
+    LocalisationKit --> DeveloperProfileKit
+
+    %% Dependencies from Host Apps to Shared SPMs
+    DesignTokensKit --> ShowBook
+    UIComponentsKit --> ShowBook
+    AuthKit --> ShowBook
+    CommonNetworkingKit --> ShowBook
+    DeveloperProfileKit --> ShowBook
+    AppStubData --> ShowBook
+
+    DesignTokensKit --> MyTV
+    UIComponentsKit --> MyTV
+    AuthKit --> MyTV
+    CommonNetworkingKit --> MyTV
+    DeveloperProfileKit --> MyTV
+    AppStubData --> MyTV
+
+    DesignTokensKit --> MotivationDaily
+    UIComponentsKit --> MotivationDaily
+    AuthKit --> MotivationDaily
+    CommonNetworkingKit --> MotivationDaily
+    DeveloperProfileKit --> MotivationDaily
+    AppStubData --> MotivationDaily
+
+    %% Testing & Verification Linkage
+    SnapshotTestingKit -.-> ShowBook
+    SnapshotTestingKit -.-> MyTV
+    SnapshotTestingKit -.-> MotivationDaily
+
+    ArchitectureGuard --> HostApps
+    ArchitectureGuard --> CoreServices
+    ArchitectureGuard --> UIServices
+    SnapshotVerifier --> SnapshotTestingKit
+    GHActions --> HostApps
+    GHActions --> UIServices
+    GHActions --> CoreServices
+```
 
 ---
 
-## Quality & CI Verification
+## 7. Canonical Notion Dashboards & Governance Links
 
-Pull requests and `main` pushes are automatically validated through continuous integration:
-
-1. **SwiftLint Gate**:
-   - Pinned SwiftLint 0.65.1 enforcement (`.swiftlint.yml`).
-   - Zero-warning strict mode (`--strict`).
-   - Run locally: `bash Scripts/lint.sh`.
-2. **Build & Test Gate**:
-   - Compilation and test execution with `-strict-concurrency=complete` and `-warnings-as-errors`.
-   - Host unit tests verifying profile asset decoding and link safety.
-   - iOS Simulator build validation.
+- [iOS Portfolio — Engineering Tickets Dashboard](https://app.notion.com/p/c20d7f4b133b44499c8ac0b4d5f6249e?pvs=204)
+- [iOS Portfolio — Master Document](https://app.notion.com/p/40ffa5f855b98192ad2ede66a5d36fe7)
+- [Architecture Boundary Validator (`check_architecture.py`)](file:///Users/anuragchourasia/Desktop/Projects/UIComponentsKit/Scripts/check_architecture.py)
+- [Release & Gate Policy Documentation (`Docs/MASTER.md`)](file:///Users/anuragchourasia/Desktop/Projects/Docs/MASTER.md)
