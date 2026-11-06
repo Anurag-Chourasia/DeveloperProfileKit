@@ -77,12 +77,9 @@ import SwiftUI
 import DeveloperProfileKit
 
 struct CustomizedDeveloperScreen: View {
-    let customLabels = DeveloperProfileLabels(
-        role: "Lead iOS Architect",
-        biographyHeader: "About Me",
-        socialLinksHeader: "Get in Touch",
-        appInfoHeader: "Application Details"
-    )
+    let customLabels = DeveloperProfileLabels(resolving: { key in
+        NSLocalizedString(key, comment: "")
+    })
 
     var body: some View {
         DeveloperProfileView(

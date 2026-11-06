@@ -50,19 +50,58 @@ public struct DeveloperAppInfo: Sendable {
     }
 }
 
-/// Caller-owned strings can be localized by either app without importing its localization module.
-public struct DeveloperProfileLabels: Sendable {
-    public var appInformation = "App Information"
-    public var version = "Version"
-    public var disclaimer = "Disclaimer"
-    public var social = "Let’s Connect"
-    public var readMore = "Read more"
-    public var showLess = "Show less"
-    public var linkHint = "Opens an external link"
-    public var errorTitle = "Unable to open link"
-    public var errorMessage = "This link could not be opened. Please try again later."
-    public var okay = "OK"
-    public init() {}
+/// Caller-owned strings resolved from the canonical `LocalizationKit` catalog (`profile.*`).
+/// Standalone callers that omit `resolve` receive the canonical key identifiers as a deterministic fallback.
+public struct DeveloperProfileLabels: Sendable, Equatable {
+    public var appInformation: String
+    public var version: String
+    public var disclaimer: String
+    public var social: String
+    public var readMore: String
+    public var showLess: String
+    public var linkHint: String
+    public var errorTitle: String
+    public var errorMessage: String
+    public var okay: String
+
+    public init(
+        appInformation: String,
+        version: String,
+        disclaimer: String,
+        social: String,
+        readMore: String,
+        showLess: String,
+        linkHint: String,
+        errorTitle: String,
+        errorMessage: String,
+        okay: String
+    ) {
+        self.appInformation = appInformation
+        self.version = version
+        self.disclaimer = disclaimer
+        self.social = social
+        self.readMore = readMore
+        self.showLess = showLess
+        self.linkHint = linkHint
+        self.errorTitle = errorTitle
+        self.errorMessage = errorMessage
+        self.okay = okay
+    }
+
+    public init(resolving resolve: (String) -> String = { $0 }) {
+        self.init(
+            appInformation: resolve("profile.app_information"),
+            version: resolve("profile.version"),
+            disclaimer: resolve("profile.disclaimer"),
+            social: resolve("profile.social"),
+            readMore: resolve("profile.read_more"),
+            showLess: resolve("profile.show_less"),
+            linkHint: resolve("profile.link_hint"),
+            errorTitle: resolve("profile.error_title"),
+            errorMessage: resolve("profile.error_message"),
+            okay: resolve("profile.okay")
+        )
+    }
 }
 
 enum SummaryText {

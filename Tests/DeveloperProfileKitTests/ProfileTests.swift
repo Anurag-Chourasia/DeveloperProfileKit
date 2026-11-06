@@ -41,4 +41,21 @@ final class ProfileTests: XCTestCase {
         XCTAssertEqual(app.build, "42")
         XCTAssertEqual(app.disclaimer, "Book metadata")
     }
+    func testProfileLabelsResolveViaInjectedClosureAndStandaloneFallback() {
+        let standalone = DeveloperProfileLabels()
+        XCTAssertEqual(standalone.appInformation, "profile.app_information")
+        XCTAssertEqual(standalone.version, "profile.version")
+        XCTAssertEqual(standalone.disclaimer, "profile.disclaimer")
+        XCTAssertEqual(standalone.social, "profile.social")
+        XCTAssertEqual(standalone.readMore, "profile.read_more")
+        XCTAssertEqual(standalone.showLess, "profile.show_less")
+        XCTAssertEqual(standalone.linkHint, "profile.link_hint")
+        XCTAssertEqual(standalone.errorTitle, "profile.error_title")
+        XCTAssertEqual(standalone.errorMessage, "profile.error_message")
+        XCTAssertEqual(standalone.okay, "profile.okay")
+
+        let resolved = DeveloperProfileLabels { key in "[\(key)]" }
+        XCTAssertEqual(resolved.appInformation, "[profile.app_information]")
+        XCTAssertEqual(resolved.okay, "[profile.okay]")
+    }
 }
