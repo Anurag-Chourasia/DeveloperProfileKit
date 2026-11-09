@@ -35,7 +35,11 @@ public struct DeveloperProfile: Decodable, Sendable {
         guard let url = Bundle.module.url(forResource: "Anurag", withExtension: "json"),
               let data = try? Data(contentsOf: url),
               let profile = try? JSONDecoder().decode(DeveloperProfile.self, from: data) else {
+            #if DEBUG
             fatalError("Failed to decode bundled Anurag.json profile resource")
+            #else
+            return DeveloperProfile(name: "", role: "", summary: "", portrait: "", links: [])
+            #endif
         }
         return profile
     }()
@@ -141,3 +145,18 @@ enum SummaryText {
         return words.prefix(max(0, wordLimit)).joined(separator: " ") + (words.count > max(0, wordLimit) ? "…" : "")
     }
 }
+
+#if DEBUG
+/// Diagnostics and developer controls available in debug configurations.
+public struct DeveloperDiagnostics: Sendable {
+    public enum Environment: String, CaseIterable, Sendable {
+        case production
+        case staging
+        case localMock
+    }
+
+    public static let shared = DeveloperDiagnostics()
+
+    public init() {}
+}
+#endif

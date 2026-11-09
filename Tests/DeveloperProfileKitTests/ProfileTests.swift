@@ -91,4 +91,36 @@ final class ProfileTests: XCTestCase {
         let viewWithAppClock = DeveloperProfileView(app: app, appClock: SystemClock())
         XCTAssertNotNil(viewWithAppClock.body)
     }
+
+    func testDeveloperProfileCustomInit() throws {
+        let siteURL = try XCTUnwrap(URL(string: "https://example.com"))
+        let profile = DeveloperProfile(
+            name: "Test Developer",
+            role: "iOS Engineer",
+            summary: "Building apps",
+            portrait: "test_portrait",
+            links: [
+                DeveloperLink(title: "Site", icon: "globe", url: siteURL)
+            ]
+        )
+        XCTAssertEqual(profile.name, "Test Developer")
+        XCTAssertEqual(profile.role, "iOS Engineer")
+        XCTAssertEqual(profile.summary, "Building apps")
+        XCTAssertEqual(profile.portrait, "test_portrait")
+        XCTAssertEqual(profile.links.count, 1)
+        XCTAssertEqual(profile.links.first?.title, "Site")
+    }
+
+    #if DEBUG
+    func testDeveloperDiagnostics() {
+        XCTAssertEqual(DeveloperDiagnostics.Environment.allCases.count, 3)
+        XCTAssertEqual(DeveloperDiagnostics.Environment.production.rawValue, "production")
+        XCTAssertEqual(DeveloperDiagnostics.Environment.staging.rawValue, "staging")
+        XCTAssertEqual(DeveloperDiagnostics.Environment.localMock.rawValue, "localMock")
+
+        let diag = DeveloperDiagnostics()
+        XCTAssertNotNil(diag)
+        XCTAssertNotNil(DeveloperDiagnostics.shared)
+    }
+    #endif
 }
