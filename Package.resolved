@@ -1,5 +1,5 @@
 {
-  "originHash" : "7fefd8b5f6bff70b378c2bb7cb00d1a1a5eb1ad65fc5b975458ec8ffbe4cb8f9",
+  "originHash" : "bb22586b5a757d796136376a439422d6d182a1d96606bc806283d20e402a2309",
   "pins" : [
     {
       "identity" : "designtokenskit",
@@ -8,6 +8,15 @@
       "state" : {
         "revision" : "053acca25716229c4b97b7d22b6351330a030364",
         "version" : "1.23.0"
+      }
+    },
+    {
+      "identity" : "foundationkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Anurag-Chourasia/FoundationKit.git",
+      "state" : {
+        "revision" : "9208511f0c83b1ca9be1fc7914b5ea2d698d8cda",
+        "version" : "0.3.0"
       }
     },
     {

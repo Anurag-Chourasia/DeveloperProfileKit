@@ -2,6 +2,7 @@ import SwiftUI
 import DesignTokensKit
 import UIComponentsKit
 import LocalizationKit
+import FoundationKit
 
 /// Scrollable content; the host owns navigation, connectivity and appearance controls.
 public struct DeveloperProfileView: View {
@@ -9,6 +10,7 @@ public struct DeveloperProfileView: View {
     private let app: DeveloperAppInfo
     private let layout: CatalogLayout
     private let customLabels: DeveloperProfileLabels?
+    private let clock: any Clock<Duration>
     @Environment(\.localizationProvider) private var localizationProvider
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.openURL) private var openURL
@@ -18,12 +20,30 @@ public struct DeveloperProfileView: View {
         profile: DeveloperProfile = .anurag,
         app: DeveloperAppInfo,
         layout: CatalogLayout = .list,
-        labels: DeveloperProfileLabels? = nil
+        labels: DeveloperProfileLabels? = nil,
+        clock: any Clock<Duration> = ContinuousClock()
     ) {
         self.profile = profile
         self.app = app
         self.layout = layout
         self.customLabels = labels
+        self.clock = clock
+    }
+
+    public init(
+        profile: DeveloperProfile = .anurag,
+        app: DeveloperAppInfo,
+        layout: CatalogLayout = .list,
+        labels: DeveloperProfileLabels? = nil,
+        appClock: any AppClock
+    ) {
+        self.init(
+            profile: profile,
+            app: app,
+            layout: layout,
+            labels: labels,
+            clock: ContinuousClock()
+        )
     }
 
     private var labels: DeveloperProfileLabels {
@@ -41,7 +61,7 @@ public struct DeveloperProfileView: View {
                         .accessibilityHidden(true)
                     Text(profile.name).font(Typography.title2.weight(.bold)).accessibilityAddTraits(.isHeader)
                     Text(profile.role).foregroundStyle(\.secondary)
-                    DeveloperSummary(text: profile.summary, labels: labels)
+                    DeveloperSummary(text: profile.summary, labels: labels, clock: clock)
                 }.padding(\.sixteen)
                 Divider()
                 VStack(alignment: .leading, spacing: \.eight) {
@@ -125,6 +145,7 @@ public struct DeveloperProfileView: View {
 private struct DeveloperSummary: View {
     let text: String
     let labels: DeveloperProfileLabels
+    let clock: any Clock<Duration>
     @State private var expanded = false
     @State private var displayed = ""
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -153,7 +174,7 @@ private struct DeveloperSummary: View {
             for count in min(Self.previewWordLimit, words.count)...words.count {
                 guard !Task.isCancelled else { return }
                 displayed = words.prefix(count).joined(separator: " ")
-                do { try await Task.sleep(for: .milliseconds(150)) } catch { return }
+                do { try await clock.sleep(for: .milliseconds(150)) } catch { return }
             }
         }
     }

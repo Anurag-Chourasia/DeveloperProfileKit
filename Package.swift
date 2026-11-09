@@ -6,6 +6,7 @@ let package = Package(
     platforms: [.iOS(.v16), .macOS(.v14)],
     products: [.library(name: "DeveloperProfileKit", targets: ["DeveloperProfileKit"])],
     dependencies: [
+        .package(url: "https://github.com/Anurag-Chourasia/FoundationKit.git", "0.1.0"..<"2.0.0"),
         .package(url: "https://github.com/Anurag-Chourasia/DesignTokensKit.git", "1.3.0"..<"2.0.0"),
         .package(url: "https://github.com/Anurag-Chourasia/UIComponentsKit.git", "1.3.0"..<"2.0.0"),
         .package(url: "https://github.com/Anurag-Chourasia/LocalizationKit.git", "0.9.0"..<"2.0.0")
@@ -14,6 +15,7 @@ let package = Package(
         .target(
             name: "DeveloperProfileKit",
             dependencies: [
+                .product(name: "FoundationKit", package: "FoundationKit"),
                 "DesignTokensKit",
                 "UIComponentsKit",
                 .product(name: "LocalizationKit", package: "LocalizationKit")
@@ -24,6 +26,7 @@ let package = Package(
             name: "DeveloperProfileKitTests",
             dependencies: [
                 "DeveloperProfileKit",
+                .product(name: "FoundationKit", package: "FoundationKit"),
                 .product(name: "LocalizationKit", package: "LocalizationKit")
             ]
         )

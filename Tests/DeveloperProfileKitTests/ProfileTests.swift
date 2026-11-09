@@ -1,6 +1,7 @@
 import XCTest
 import SwiftUI
 import LocalizationKit
+import FoundationKit
 #if canImport(AppKit)
 import AppKit
 #endif
@@ -84,7 +85,10 @@ final class ProfileTests: XCTestCase {
         XCTAssertNotNil(viewDefault.body)
 
         let customLabels = DeveloperProfileLabels(resolving: { "[\($0)]" })
-        let viewCustom = DeveloperProfileView(app: app, layout: .grid, labels: customLabels)
+        let viewCustom = DeveloperProfileView(app: app, layout: .grid, labels: customLabels, clock: ContinuousClock())
         XCTAssertNotNil(viewCustom.body)
+
+        let viewWithAppClock = DeveloperProfileView(app: app, appClock: SystemClock())
+        XCTAssertNotNil(viewWithAppClock.body)
     }
 }
