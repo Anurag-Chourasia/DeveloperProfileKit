@@ -32,59 +32,59 @@ public struct DeveloperProfileView: View {
 
     public var body: some View {
         ScrollView {
-            VStack(spacing: Spacing.zero) {
-                VStack(spacing: Spacing.sixteen) {
+            VStack(spacing: \.zero) {
+                VStack(spacing: \.sixteen) {
                     Image(profile.portrait, bundle: .module)
-                        .resizable().scaledToFit().frame(width: DesignMetric.p100)
+                        .resizable().scaledToFit().frame(width: \.p100, height: \.p100)
                         .clipShape(Circle())
-                        .overlay(Circle().stroke(DesignColor.secondary, lineWidth: StrokeWidth.one))
+                        .overlay(Circle().stroke(ColorTheme.default.secondary, lineWidth: StrokeWidthTheme.default.one))
                         .accessibilityHidden(true)
                     Text(profile.name).font(Typography.title2.weight(.bold)).accessibilityAddTraits(.isHeader)
-                    Text(profile.role).foregroundStyle(DesignColor.secondary)
+                    Text(profile.role).foregroundStyle(\.secondary)
                     DeveloperSummary(text: profile.summary, labels: labels)
-                }.padding(.all, Spacing.system)
+                }.padding(\.sixteen)
                 Divider()
-                VStack(alignment: .leading, spacing: Spacing.eight) {
-                    Text(labels.appInformation).font(Typography.headline).accessibilityAddTraits(.isHeader)
+                VStack(alignment: .leading, spacing: \.eight) {
+                    Text(labels.appInformation).font(\.headline).accessibilityAddTraits(.isHeader)
                     Text(app.name)
-                    Text("\(labels.version) \(app.version) (\(app.build))").foregroundStyle(DesignColor.secondary)
-                }.frame(maxWidth: .infinity, alignment: .leading).padding(.all, Spacing.system)
+                    Text("\(labels.version) \(app.version) (\(app.build))").foregroundStyle(\.secondary)
+                }.frame(maxWidth: .infinity, alignment: .leading).padding(\.sixteen)
                 Divider()
-                VStack(alignment: .leading, spacing: Spacing.ten) {
-                    Text(labels.disclaimer).font(Typography.headline).accessibilityAddTraits(.isHeader)
-                    Text(.init(app.disclaimer)).font(Typography.footnote)
-                        .foregroundStyle(DesignColor.secondary).tint(DesignColor.blue)
+                VStack(alignment: .leading, spacing: \.ten) {
+                    Text(labels.disclaimer).font(\.headline).accessibilityAddTraits(.isHeader)
+                    Text(.init(app.disclaimer)).font(\.footnote)
+                        .foregroundStyle(\.secondary).tint(\.blue)
                         .fixedSize(horizontal: false, vertical: true)
-                }.frame(maxWidth: .infinity, alignment: .leading).padding(.all, Spacing.system)
+                }.frame(maxWidth: .infinity, alignment: .leading).padding(\.sixteen)
                 Divider()
                 socialLinks
             }
         }
-        .background(DesignColor.grouped)
+        .background(\.grouped)
         .alert(labels.errorTitle, isPresented: $linkFailed) {
             Button(labels.okay, role: .cancel) {}
         } message: { Text(labels.errorMessage) }
     }
 
     private var socialLinks: some View {
-        VStack(alignment: .leading, spacing: Spacing.sixteen) {
-            Text(labels.social).font(Typography.headline).accessibilityAddTraits(.isHeader)
+        VStack(alignment: .leading, spacing: \.sixteen) {
+            Text(labels.social).font(\.headline).accessibilityAddTraits(.isHeader)
             if layout.resolved(isAccessibilitySize: dynamicTypeSize.isAccessibilitySize) == .grid {
-                LazyVGrid(columns: [.init(.adaptive(minimum: DesignMetric.p120))], spacing: Spacing.twelve) {
+                LazyVGrid(columns: [.init(.adaptive(minimum: DesignMetricTheme.default.p120))], spacing: SpacingTheme.default.twelve) {
                     ForEach(profile.links) { link in
                         linkButton(link, grid: true)
                     }
                 }
             } else {
-                VStack(spacing: Spacing.zero) {
+                VStack(spacing: \.zero) {
                     ForEach(profile.links) { link in
                         linkButton(link, grid: false)
-                        if link.id != profile.links.last?.id { Divider().padding(.horizontal, Spacing.sixteen) }
+                        if link.id != profile.links.last?.id { Divider().padding(.horizontal, \.sixteen) }
                     }
-                }.background(DesignColor.groupedSecondary)
-                    .clipShape(RoundedRectangle(cornerRadius: DesignMetric.p12))
+                }.background(\.groupedSecondary)
+                    .clipShape(RoundedRectangle(cornerRadius: \.r12))
             }
-        }.padding(.all, Spacing.system)
+        }.padding(\.sixteen)
     }
 
     private func linkButton(_ link: DeveloperLink, grid: Bool) -> some View {
@@ -94,31 +94,31 @@ public struct DeveloperProfileView: View {
         } label: {
             Group {
                 if grid {
-                    VStack(spacing: Spacing.twelve) {
-                        icon(link, size: DesignMetric.p64)
-                        Text(link.title).font(Typography.headline).multilineTextAlignment(.center)
-                    }.frame(maxWidth: .infinity, minHeight: DesignMetric.p110)
+                    VStack(spacing: \.twelve) {
+                        icon(link, size: \.p64)
+                        Text(link.title).font(\.headline).multilineTextAlignment(.center)
+                    }.frame(maxWidth: .infinity, minHeight: DesignMetricTheme.default.p110)
                 } else {
-                    HStack(spacing: Spacing.twelve) {
-                        icon(link, size: DesignMetric.p36)
-                        Text(link.title).font(Typography.headline)
+                    HStack(spacing: \.twelve) {
+                        icon(link, size: \.p36)
+                        Text(link.title).font(\.headline)
                         Spacer()
                     }
                 }
             }
-            .foregroundStyle(DesignColor.primary)
-            .padding(.all, Spacing.system)
-            .background(DesignColor.groupedSecondary)
-            .clipShape(RoundedRectangle(cornerRadius: DesignMetric.p20))
+            .foregroundStyle(\.primary)
+            .padding(\.sixteen)
+            .background(\.groupedSecondary)
+            .clipShape(RoundedRectangle(cornerRadius: \.r20))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(link.title).accessibilityHint(labels.linkHint)
     }
 
-    private func icon(_ link: DeveloperLink, size: CGFloat) -> some View {
+    private func icon(_ link: DeveloperLink, size: KeyPath<DesignMetricTheme, CGFloat>) -> some View {
         Image(link.icon, bundle: .module).resizable().scaledToFit()
-            .frame(width: size, height: size).accessibilityHidden(true)
+            .frame(size: size).accessibilityHidden(true)
     }
 }
 
@@ -131,24 +131,26 @@ private struct DeveloperSummary: View {
     @Environment(\.accessibilityVoiceOverEnabled) private var voiceOver
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
+    private static let previewWordLimit = 13
+
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.twelve) {
-            Text(expanded ? (reduceMotion || voiceOver ? text : displayed) : SummaryText.preview(text))
-                .font(Typography.body)
+        VStack(alignment: .leading, spacing: \.twelve) {
+            Text(expanded ? (reduceMotion || voiceOver ? text : displayed) : SummaryText.preview(text, wordLimit: Self.previewWordLimit))
+                .font(\.body)
                 .lineLimit(expanded ? nil : (dynamicTypeSize.isAccessibilitySize ? CatalogMetrics.accessibleTitleLines : TextLineLimit.p2))
                 .frame(maxWidth: .infinity, alignment: .leading)
-            if text.split(whereSeparator: \.isWhitespace).count > 13 {
+            if text.split(whereSeparator: \.isWhitespace).count > Self.previewWordLimit {
                 Button(expanded ? labels.showLess : labels.readMore) { expanded.toggle() }
                     .font(Typography.body.weight(.semibold))
             }
         }
-        .padding(.all, Spacing.system)
+        .padding(\.sixteen)
         .task(id: expanded) {
             guard expanded else { displayed = ""; return }
             // View-scoped task cancels when collapsed or removed from navigation.
             guard !reduceMotion, !voiceOver else { displayed = text; return }
             let words = text.split(separator: " ", omittingEmptySubsequences: false)
-            for count in min(13, words.count)...words.count {
+            for count in min(Self.previewWordLimit, words.count)...words.count {
                 guard !Task.isCancelled else { return }
                 displayed = words.prefix(count).joined(separator: " ")
                 do { try await Task.sleep(for: .milliseconds(150)) } catch { return }
