@@ -1,4 +1,6 @@
 import XCTest
+import SwiftUI
+import LocalizationKit
 #if canImport(AppKit)
 import AppKit
 #endif
@@ -41,21 +43,48 @@ final class ProfileTests: XCTestCase {
         XCTAssertEqual(app.build, "42")
         XCTAssertEqual(app.disclaimer, "Book metadata")
     }
-    func testProfileLabelsResolveViaInjectedClosureAndStandaloneFallback() {
-        let standalone = DeveloperProfileLabels()
-        XCTAssertEqual(standalone.appInformation, "profile.app_information")
-        XCTAssertEqual(standalone.version, "profile.version")
-        XCTAssertEqual(standalone.disclaimer, "profile.disclaimer")
-        XCTAssertEqual(standalone.social, "profile.social")
-        XCTAssertEqual(standalone.readMore, "profile.read_more")
-        XCTAssertEqual(standalone.showLess, "profile.show_less")
-        XCTAssertEqual(standalone.linkHint, "profile.link_hint")
-        XCTAssertEqual(standalone.errorTitle, "profile.error_title")
-        XCTAssertEqual(standalone.errorMessage, "profile.error_message")
-        XCTAssertEqual(standalone.okay, "profile.okay")
+    func testProfileLabelsResolveViaLocalizationKitAndCustomResolution() {
+        let localized = DeveloperProfileLabels()
+        XCTAssertEqual(localized.appInformation, "App Information")
+        XCTAssertEqual(localized.version, "Version")
+        XCTAssertEqual(localized.disclaimer, "Disclaimer")
+        XCTAssertEqual(localized.social, "Let’s Connect")
+        XCTAssertEqual(localized.readMore, "Read more")
+        XCTAssertEqual(localized.showLess, "Show less")
+        XCTAssertEqual(localized.linkHint, "Opens an external link")
+        XCTAssertEqual(localized.errorTitle, "Unable to open link")
+        XCTAssertEqual(localized.errorMessage, "This link could not be opened. Please try again later.")
+        XCTAssertEqual(localized.okay, "OK")
+
+        let keys = DeveloperProfileLabels.keys
+        XCTAssertEqual(keys.appInformation, "profile.app_information")
+        XCTAssertEqual(keys.version, "profile.version")
+        XCTAssertEqual(keys.disclaimer, "profile.disclaimer")
+        XCTAssertEqual(keys.social, "profile.social")
+        XCTAssertEqual(keys.readMore, "profile.read_more")
+        XCTAssertEqual(keys.showLess, "profile.show_less")
+        XCTAssertEqual(keys.linkHint, "profile.link_hint")
+        XCTAssertEqual(keys.errorTitle, "profile.error_title")
+        XCTAssertEqual(keys.errorMessage, "profile.error_message")
+        XCTAssertEqual(keys.okay, "profile.okay")
 
         let resolved = DeveloperProfileLabels { key in "[\(key)]" }
         XCTAssertEqual(resolved.appInformation, "[profile.app_information]")
         XCTAssertEqual(resolved.okay, "[profile.okay]")
+
+        let contextLabels = DeveloperProfileLabels(context: CommonStrings.shared)
+        XCTAssertEqual(contextLabels.appInformation, "App Information")
+        XCTAssertEqual(contextLabels.okay, "OK")
+    }
+
+    @MainActor
+    func testDeveloperProfileViewInitializes() {
+        let app = DeveloperAppInfo(name: "ShowBook", version: "2.0", build: "42", disclaimer: "Book metadata")
+        let viewDefault = DeveloperProfileView(app: app)
+        XCTAssertNotNil(viewDefault.body)
+
+        let customLabels = DeveloperProfileLabels(resolving: { "[\($0)]" })
+        let viewCustom = DeveloperProfileView(app: app, layout: .grid, labels: customLabels)
+        XCTAssertNotNil(viewCustom.body)
     }
 }

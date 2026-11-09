@@ -1,4 +1,5 @@
 import Foundation
+import LocalizationKit
 
 public struct DeveloperLink: Identifiable, Decodable, Sendable {
     public let title: String
@@ -51,7 +52,7 @@ public struct DeveloperAppInfo: Sendable {
 }
 
 /// Caller-owned strings resolved from the canonical `LocalizationKit` catalog (`profile.*`).
-/// Standalone callers that omit `resolve` receive the canonical key identifiers as a deterministic fallback.
+/// Standalone callers that omit `resolve` receive localized values from `LocalizationKit`.
 public struct DeveloperProfileLabels: Sendable, Equatable {
     public var appInformation: String
     public var version: String
@@ -88,7 +89,34 @@ public struct DeveloperProfileLabels: Sendable, Equatable {
         self.okay = okay
     }
 
-    public init(resolving resolve: (String) -> String = { $0 }) {
+    /// Initializes labels by querying the provided `LocalizationProviding` instance (defaults to `LocalizationController.shared`).
+    public init(provider: any LocalizationProviding = LocalizationController.shared) {
+        self.init(
+            appInformation: provider.string("profile.app_information"),
+            version: provider.string("profile.version"),
+            disclaimer: provider.string("profile.disclaimer"),
+            social: provider.string("profile.social"),
+            readMore: provider.string("profile.read_more"),
+            showLess: provider.string("profile.show_less"),
+            linkHint: provider.string("profile.link_hint"),
+            errorTitle: provider.string("profile.error_title"),
+            errorMessage: provider.string("profile.error_message"),
+            okay: provider.string("profile.okay")
+        )
+    }
+
+    /// Initializes labels directly from a `LocalizedContext`.
+    public init<Domain: LocalizationDomain>(context: LocalizedContext<Domain>) {
+        self.init(provider: context.provider)
+    }
+
+    /// Initializes labels directly from `CommonStrings`.
+    public init(context: CommonStrings) {
+        self.init(provider: context.provider)
+    }
+
+    /// Initializes labels using a custom key resolution closure.
+    public init(resolving resolve: (String) -> String) {
         self.init(
             appInformation: resolve("profile.app_information"),
             version: resolve("profile.version"),
@@ -102,6 +130,9 @@ public struct DeveloperProfileLabels: Sendable, Equatable {
             okay: resolve("profile.okay")
         )
     }
+
+    /// Deterministic key identifiers for standalone testing or unlocalized catalogs.
+    public static let keys = DeveloperProfileLabels(resolving: { $0 })
 }
 
 enum SummaryText {

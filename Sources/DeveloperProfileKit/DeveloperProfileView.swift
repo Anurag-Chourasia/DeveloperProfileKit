@@ -1,20 +1,33 @@
 import SwiftUI
 import DesignTokensKit
 import UIComponentsKit
+import LocalizationKit
 
 /// Scrollable content; the host owns navigation, connectivity and appearance controls.
 public struct DeveloperProfileView: View {
     private let profile: DeveloperProfile
     private let app: DeveloperAppInfo
     private let layout: CatalogLayout
-    private let labels: DeveloperProfileLabels
+    private let customLabels: DeveloperProfileLabels?
+    @Environment(\.localizationProvider) private var localizationProvider
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.openURL) private var openURL
     @State private var linkFailed = false
 
-    public init(profile: DeveloperProfile = .anurag, app: DeveloperAppInfo,
-                layout: CatalogLayout = .list, labels: DeveloperProfileLabels = .init()) {
-        self.profile = profile; self.app = app; self.layout = layout; self.labels = labels
+    public init(
+        profile: DeveloperProfile = .anurag,
+        app: DeveloperAppInfo,
+        layout: CatalogLayout = .list,
+        labels: DeveloperProfileLabels? = nil
+    ) {
+        self.profile = profile
+        self.app = app
+        self.layout = layout
+        self.customLabels = labels
+    }
+
+    private var labels: DeveloperProfileLabels {
+        customLabels ?? DeveloperProfileLabels(provider: localizationProvider)
     }
 
     public var body: some View {
