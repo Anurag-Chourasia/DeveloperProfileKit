@@ -80,7 +80,7 @@ public struct DeveloperProfileView: View {
                 socialLinks
             }
         }
-        .background(\.grouped)
+        .background(\.background)
         .alert(labels.errorTitle, isPresented: $linkFailed) {
             Button(labels.okay, role: .cancel) {}
         } message: { Text(labels.errorMessage) }
