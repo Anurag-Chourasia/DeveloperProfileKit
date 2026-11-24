@@ -81,6 +81,7 @@ public struct DeveloperProfileView: View {
             }
         }
         .background(\.background)
+        .applyModalSheetStyle()
         .alert(labels.errorTitle, isPresented: $linkFailed) {
             Button(labels.okay, role: .cancel) {}
         } message: { Text(labels.errorMessage) }
