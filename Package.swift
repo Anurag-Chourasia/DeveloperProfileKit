@@ -8,7 +8,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/Anurag-Chourasia/FoundationKit.git", "0.1.0"..<"2.0.0"),
         .package(url: "https://github.com/Anurag-Chourasia/DesignTokensKit.git", "1.3.0"..<"2.0.0"),
-        .package(url: "https://github.com/Anurag-Chourasia/UIComponentsKit.git", "1.3.0"..<"2.0.0"),
+        .package(url: "https://github.com/Anurag-Chourasia/UIComponentsKit.git", "1.13.0"..<"2.0.0"),
         .package(url: "https://github.com/Anurag-Chourasia/LocalizationKit.git", "0.9.0"..<"2.0.0")
     ],
     targets: [
