@@ -72,7 +72,7 @@ public struct DeveloperProfileView: View {
                 Divider()
                 VStack(alignment: .leading, spacing: \.ten) {
                     Text(labels.disclaimer).font(\.headline).accessibilityAddTraits(.isHeader)
-                    Text(.init(app.disclaimer)).font(\.footnote)
+                    Text(disclaimerAttributedString).font(\.footnote)
                         .foregroundStyle(\.secondary).tint(\.blue)
                         .fixedSize(horizontal: false, vertical: true)
                 }.frame(maxWidth: .infinity, alignment: .leading).padding(\.sixteen)
@@ -85,6 +85,13 @@ public struct DeveloperProfileView: View {
         .alert(labels.errorTitle, isPresented: $linkFailed) {
             Button(labels.okay, role: .cancel) {}
         } message: { Text(labels.errorMessage) }
+    }
+
+    private var disclaimerAttributedString: AttributedString {
+        (try? AttributedString(
+            markdown: app.disclaimer,
+            options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace)
+        )) ?? AttributedString(app.disclaimer)
     }
 
     private var socialLinks: some View {
